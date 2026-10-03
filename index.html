@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Canvas Triangle Viewer</title>
+    <style>
+      body { margin: 1rem; font-family: system-ui, sans-serif; }
+      canvas { border: 1px solid #555; image-rendering: pixelated; }
+      #hint { margin-top: 0.5rem; color: #444; }
+    </style>
+  </head>
+  <body>
+    <canvas id="viewport" width="640" height="480"></canvas>
+    <div id="hint">拖动旋转；点击像素读取该帧的原始三角形 ID。<span id="pick-readout"></span></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
