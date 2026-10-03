@@ -40,6 +40,13 @@ export interface RenderFrame {
   depth: Float32Array;
   /** Original input triangle number; -1 means a background pixel. */
   primitiveId: Int32Array;
+  /**
+   * Visible-edge coverage: 1 where a mesh edge covers the pixel and passes
+   * that pixel's depth test, 0 otherwise. Null when the edge overlay was
+   * not requested, so a frame rendered with the overlay off is identical
+   * to the old behaviour.
+   */
+  edges: Uint8Array | null;
 }
 
 export interface RenderRequest {
@@ -48,6 +55,8 @@ export interface RenderRequest {
   height: number;
   camera: Camera;
   mesh: Mesh;
+  /** Whether the worker should produce the visible-edge layer for this frame. */
+  showEdges: boolean;
 }
 
 export type RenderResponse =
@@ -59,5 +68,7 @@ export type RenderResponse =
       colors: Uint8ClampedArray;
       depth: Float32Array;
       primitiveId: Int32Array;
+      /** Non-null exactly when the request that produced the frame had showEdges set. */
+      edges: Uint8Array | null;
     }
   | { type: 'error'; seq: number; message: string };

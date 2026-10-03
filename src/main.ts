@@ -35,6 +35,10 @@ let dragging = false;
 let lastX = 0;
 let lastY = 0;
 const readout = document.querySelector('#pick-readout');
+const wireframeToggle = document.querySelector<HTMLInputElement>('#wireframe-toggle');
+wireframeToggle?.addEventListener('change', () => {
+  viewer.setWireframe(wireframeToggle.checked);
+});
 
 canvas.addEventListener('pointerdown', (event) => {
   dragging = true;

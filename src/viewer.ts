@@ -16,6 +16,12 @@ export interface ViewerOptions {
   createWorker?: () => Worker;
 }
 
+/**
+ * Wireframe overlay colour. Only the displayed ImageData is tinted; the
+ * committed colour, depth and primitive-id buffers stay untouched.
+ */
+const EDGE_COLOR = [255, 255, 0] as const;
+
 const defaultWorkerFactory = (): Worker =>
   new Worker(new URL('./renderWorker.ts', import.meta.url), { type: 'module' });
 
@@ -29,6 +35,7 @@ export class TriangleViewer {
   private height: number;
   private camera: Camera;
   private frameState: FrameCommitState;
+  private showEdges = false;
   private renderQueued = false;
   private disposed = false;
 
@@ -64,11 +71,9 @@ export class TriangleViewer {
       }
 
       // commitResponse has already rejected old generations and old sizes,
-      // so the color, depth and picking buffers always change together.
-      const frame = this.frameState.frame;
-      if (frame === null) return;
-      this.imageData.data.set(frame.colors);
-      this.ctx2d.putImageData(this.imageData, 0, 0);
+      // so the color, depth, picking and edge buffers always change
+      // together. Draw from the single committed snapshot.
+      this.drawCommittedFrame();
     };
 
     this.requestRender();
@@ -87,6 +92,25 @@ export class TriangleViewer {
 
   getRotation(): { yaw: number; pitch: number } {
     return { yaw: this.camera.yaw, pitch: this.camera.pitch };
+  }
+
+  /**
+   * Toggle the visible-edge overlay. The toggle is part of frame identity
+   * like rotation and size: it starts a new generation, and a late frame
+   * from the previous state is rejected. The committed base buffers are
+   * never altered either way.
+   */
+  setWireframe(enabled: boolean): void {
+    if (this.showEdges === enabled) return;
+    this.showEdges = enabled;
+    // Paint or lift the overlay on the frame already committed without
+    // mutating it, then request the canonical frame for this generation.
+    this.drawCommittedFrame();
+    this.requestRender();
+  }
+
+  isWireframeEnabled(): boolean {
+    return this.showEdges;
   }
 
   setSize(width: number, height: number): void {
@@ -123,6 +147,28 @@ export class TriangleViewer {
     this.worker.terminate();
   }
 
+  /**
+   * Copy the committed colour buffer into the display ImageData and tint
+   * the edge pixels on the copy only. The committed frame itself is never
+   * modified, so disabling the overlay restores the exact base image and
+   * picking results are unaffected in every state.
+   */
+  private drawCommittedFrame(): void {
+    const frame = this.frameState.frame;
+    if (frame === null) return;
+    this.imageData.data.set(frame.colors);
+    if (this.showEdges && frame.edges !== null) {
+      for (let i = 0; i < frame.edges.length; i++) {
+        if (frame.edges[i] !== 1) continue;
+        const colorIndex = i * 4;
+        this.imageData.data[colorIndex] = EDGE_COLOR[0];
+        this.imageData.data[colorIndex + 1] = EDGE_COLOR[1];
+        this.imageData.data[colorIndex + 2] = EDGE_COLOR[2];
+      }
+    }
+    this.ctx2d.putImageData(this.imageData, 0, 0);
+  }
+
   private requestRender(): void {
     if (this.disposed || this.renderQueued) return;
     this.renderQueued = true;
@@ -143,6 +189,7 @@ export class TriangleViewer {
         height: this.height,
         camera: this.camera,
         mesh: this.mesh,
+        showEdges: this.showEdges,
       });
     });
   }

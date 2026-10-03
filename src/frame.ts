@@ -36,7 +36,9 @@ export function isFrameFor(frame: CommittedFrame | null, seq: number, width: num
 
 /**
  * Apply a worker response using the exact stale-frame rule. A response is
- * accepted only when its generation and dimensions are both current.
+ * accepted only when its generation and dimensions are both current. The
+ * edge layer is committed in the same snapshot as the color, depth and
+ * primitive-id buffers, so the overlay can never come from another frame.
  */
 export function commitResponse(state: FrameCommitState, response: RenderResponse): boolean {
   if (response.seq !== state.seq) return false;
@@ -54,6 +56,7 @@ export function commitResponse(state: FrameCommitState, response: RenderResponse
     response.colors,
     response.depth,
     response.primitiveId,
+    response.edges,
   );
   state.lastError = null;
   return true;
@@ -66,8 +69,9 @@ export function createFrameSnapshot(
   colors: Uint8ClampedArray,
   depth: Float32Array,
   primitiveId: Int32Array,
+  edges: Uint8Array | null = null,
 ): CommittedFrame {
-  return { seq, width, height, colors, depth, primitiveId };
+  return { seq, width, height, colors, depth, primitiveId, edges };
 }
 
 /**

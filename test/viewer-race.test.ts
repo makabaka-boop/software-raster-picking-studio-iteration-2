@@ -12,6 +12,7 @@ const response = (seq: number, width: number, height: number, id: number): Rende
     colors: new Uint8ClampedArray(count * 4),
     depth: new Float32Array(count),
     primitiveId: new Int32Array(count).fill(id),
+    edges: null,
   };
 };
 

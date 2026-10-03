@@ -13,6 +13,9 @@
   <body>
     <canvas id="viewport" width="640" height="480"></canvas>
     <div id="hint">拖动旋转；点击像素读取该帧的原始三角形 ID。<span id="pick-readout"></span></div>
+    <div>
+      <label><input type="checkbox" id="wireframe-toggle" /> 线框辅助检查（仅显示当前视角可见的三角形边）</label>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

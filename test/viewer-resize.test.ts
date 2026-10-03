@@ -41,6 +41,7 @@ const frameResponse = (seq: number, width: number, height: number, id: number): 
   colors: new Uint8ClampedArray(width * height * 4),
   depth: new Float32Array(width * height),
   primitiveId: new Int32Array(width * height).fill(id),
+  edges: null,
 });
 
 /** Lets the viewer's scheduled render callback run. */
